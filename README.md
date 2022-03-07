@@ -23,9 +23,11 @@
    - 1:1 시판 CRUD 구현
 
 
-공지사항 : team/board/flist
-1:1문의 : team/board/blist
+## 공지사항
+team/board/flist
 
+## 1:1문의
+team/board/list
 
 ## 사용 툴
 
