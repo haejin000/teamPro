@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.team.mapper.APrcoductMapper">
+	<insert id="insertMapper">
+			<!--  상품번호 , 상품명 , 이미지경로 , 모델명 -->
+		insert into Product(goodsNo,goodsNm,imagePath,makerNm,originNm,goodsModelNo,makeYmd,goodsMustInfo,goodsWeight,totalStock,soldOutFl,salesStartYmd,
+goodsPrice,fixedPrice,shortDescription,goodsDescription,relationFl,memo,
+orderCnt,hitCnt,cartCnt,wishCnt,reviewCnt,regDt.modDt,delDt ) 
+		values(#{goodsNo},#{goodsNm},#{imagePath},#{makerNm},#{originNm},#{goodsModelNo},#{makeYmd},#{goodsMustInfo},#{goodsWeight},#{totalStock},#{soldOutFl},#{salesStartYmd},
+#{goodsPrice},#{fixedPrice},#{shortDescription},#{goodsDescription},#{relationFl},#{memo},
+#{orderCnt},#{hitCnt},#{cartCnt},#{wishCnt},#{reviewCnt},#{regDt}.#{modDt},#{delDt})
+	
+	</insert>
+  
+</mapper>
+
+

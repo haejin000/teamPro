@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+  
+<mapper namespace="com.team.mapper.ListMapper">
+
+	<sql id="AllList">SELECT goodsNo,imagePath,goodsNm,fixedPrice,goodsPrice from product </sql>
+	
+	<!-- 검색어삽입 -->
+		<insert id="insertSearch">
+			<if test="keyword!=null or keyword!=''">
+			insert into popular(pp_id,keyword,pp_date,pp_ip) values(#{pp_id},#{keyword},#{pp_date},#{pp_ip})
+			</if>
+			
+		</insert>
+		<!-- 인기검색어 -->
+		<select id="HotKeyword" resultType="com.team.domain.HotKeywordDTO">
+			 select keyword from popular group by keyword order by count(keyword) desc limit 5
+		</select >
+	
+		<!-- 오늘 등록 신상품 -->
+		<select id="getTodayNewList" resultType="com.team.domain.ListDTO">
+			<include refid="AllList"></include>   where salesStartYmd=curdate() order by goodsNo desc 
+		</select >
+		
+		<!-- 인기상품 -->
+		<!-- 건강기능식품 -->
+			<select id="healthList" resultType="com.team.domain.ListDTO">
+			<include refid="AllList"></include>  where cateCode regexp 'a' order by salesStartYmd desc, orderCnt desc,hitCnt desc
+			</select >
+		<!-- 가공식품 -->
+			<select id="getProcessedList" resultType="com.team.domain.ListDTO">
+			<include refid="AllList"></include>  where cateCode regexp 'b' order by salesStartYmd desc, orderCnt desc,hitCnt desc
+			</select >
+		<!-- 신선식품 -->
+			<select id="getfreshList" resultType="com.team.domain.ListDTO">
+			<include refid="AllList"></include>  where cateCode regexp 'dd' order by salesStartYmd desc, orderCnt desc,hitCnt desc
+			</select >
+		<!-- 차/티백 -->
+			<select id="getTeaList" resultType="com.team.domain.ListDTO">
+			<include refid="AllList"></include>  where cateCode regexp 'ddd' order by salesStartYmd desc, orderCnt desc,hitCnt desc
+			</select >
+		<!-- 생활잡화 -->
+			<select id="getDailyList" resultType="com.team.domain.ListDTO">
+			<include refid="AllList"></include>  where cateCode regexp 'cc' order by salesStartYmd desc, orderCnt desc,hitCnt desc
+			</select >
+		<!-- 주간 베스트 -->
+			<select id="weekBestList" resultType="com.team.domain.ListDTO">
+			<include refid="AllList"></include> 
+			where salesStartYmd>=curdate()-7 order by orderCnt desc, wishCnt desc limit 5
+			</select >
+		<!-- 메인 배너 -->
+			<select id="MainBanner" resultType="com.team.domain.ListDTO">
+				select goodsNo,imagePath,memo from product where memo='MainBanner';
+			</select>
+
+
+		<!-- 완료main_search  -->
+		<select id="mainSearch" resultType="com.team.domain.ListDTO" parameterType="hashmap" >
+			<include refid="AllList"></include> 
+			
+			<if test="value !=null and value!='' ">
+			where goodsNm regexp #{value}
+			</if>
+			order by #{pageDTO.searchType}
+			limit #{pageDTO.startRow} ,#{pageDTO.pageSize}
+		</select>
+
+
+	
+	<!-- sub_Best 인기순 주문량+리뷰-->
+	<select id="getBestList" resultType="com.team.domain.ListDTO"> 
+		<include refid="AllList"></include>  order by orderCnt desc,reviewCnt desc limit #{startRow} ,#{pageSize}
+	</select >
+	
+	<!-- 전체 상품 갯수-->
+	<select id="getListCount" resultType="java.lang.Integer">
+		select count(*) from product
+		<if test="keyword != null">
+			where goodsNm regexp '#{keyword}'
+		</if>
+	</select>
+	
+	<!-- sub_new -->
+	<select id="getNewList" resultType="com.team.domain.ListDTO"> 
+	<include refid="AllList"></include>  where salesStartYmd>last_day(now()-interval 1 month) order by goodsNo desc limit #{startRow} ,#{pageSize}
+	</select > 
+	
+	<!-- 카테고리별 서브 페이지 -->
+	<select id="categoryList" resultType="com.team.domain.ListDTO" parameterType="hashmap" >
+			select
+			    p.goodsNo,p.imagePath,p.goodsNm,p.fixedPrice,p.goodsPrice, c.cateCodeRef, c.cateName
+			        from product p
+			            inner join goods_category c
+			                on p.cateCode = c.cateCode           
+			            where p.cateCode = #{cateCode}
+			             or c.cateCodeRef=#{cateCodeRef}
+					         <choose>
+			            	<when test="pageDTO.sprice!=0 and pageDTO.eprice!=10000000">
+			            		 and p.goodsPrice between #{pageDTO.sprice} and #{pageDTO.eprice}
+			            	</when>
+			            	<when test="searchType!=null">
+			            			order by #{pageDTO.searchType}
+			            	</when>
+			            </choose>
+			            		 limit #{pageDTO.startRow} ,#{pageDTO.pageSize}
+			           
+	</select>
+	<select id="categoryListSub" resultType="com.team.domain.ListDTO" parameterType="hashmap" >
+		select p.goodsNo,p.imagePath,p.goodsNm,p.fixedPrice,p.goodsPrice, c.cateCodeRef, c.cateName
+			        from product p
+			            inner join goods_category c
+			                on p.cateCode = c.cateCode           
+			            where p.cateCode = #{cateCode}
+			            <choose>
+			            	<when test="pageDTO.sprice!=0 and pageDTO.eprice!=10000000">
+			            		 and p.goodsPrice between #{pageDTO.sprice} and #{pageDTO.eprice}
+			            	</when>
+			            	<when test="searchType!=null">
+			            			order by #{pageDTO.searchType}
+			            	</when>
+			            </choose>
+			            		 limit #{pageDTO.startRow} ,#{pageDTO.pageSize}
+	</select>
+	<!-- subAll -->
+	<select id="subAll" resultType="com.team.domain.ListDTO"> 
+		<include refid="AllList"></include> 
+			     <if test="searchType!=null">
+			       order by #{searchType}
+			     </if>  
+			          limit #{startRow} ,#{pageSize}  		  
+	</select>
+	
+		<!--  <if test="searchType.equals('orderCnt desc,reviewCnt desc')">
+			            		 	order by #{pageDTO.searchType}
+			            		 </if>    limit #{pageDTO.startRow} ,#{pageDTO.pageSize}   	
+			            		   -->
+	
+	<select id="goodsView" resultType="com.team.domain.ListDTO">
+		select * from product where goodsNo=#{goodsNo}
+	</select>
+	
+
+  	
+</mapper>
